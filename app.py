@@ -43,7 +43,8 @@ MAX_UPLOAD_SIZE = 16 * 1024 * 1024  # 16 MB
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
-
+# Ensure upload folder exists (runs in both dev and production)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ── IN-MEMORY DATA STORE ───────────────────────────────
 # Keyed by session_id. In production, replace with Redis or a database.
@@ -205,6 +206,9 @@ if __name__ == "__main__":
     # Create uploads folder if it doesn't exist
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-    # Run the server in debug mode for development
-    # Debug mode auto-reloads when files change and shows errors in browser
-    app.run(debug=True, port=5000)
+    # Run the server
+    # In production (Render), use the PORT env variable
+    # Locally, default to 5000
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_ENV") != "production"
+    app.run(debug=debug, host="0.0.0.0", port=port)
