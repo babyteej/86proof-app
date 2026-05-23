@@ -110,27 +110,37 @@
     // ── API CALL ──────────────────────────────────────
 
     async function sendMessage(message) {
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: message,
+                history: conversationHistory,
+            }),
+        });
+
+        // Try to parse JSON — may fail if server returned empty/HTML (e.g. waking up)
+        let data;
         try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: message,
-                    history: conversationHistory,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Something went wrong.');
-            }
-
-            return data.response;
-        } catch (err) {
-            throw err;
+            data = await response.json();
+        } catch (parseErr) {
+            // Server returned non-JSON — likely waking up from sleep
+            throw new Error(
+                'The server is waking up. This can take 30-60 seconds on the free hosting tier. ' +
+                'Please try your question again in a moment.'
+            );
         }
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Something went wrong.');
+        }
+
+        return data.response;
+    } catch (err) {
+        throw err;
     }
+}
 
     // ── FORM SUBMISSION ───────────────────────────────
 
