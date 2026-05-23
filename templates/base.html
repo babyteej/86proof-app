@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}86 Proof{% endblock %}</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind config — extend default with brand colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand': {
+                            'green': '#1A6B3C',
+                            'green-light': '#EAF4EE',
+                            'dark': '#111111',
+                            'mid': '#444444',
+                            'light': '#888888',
+                            'warn': '#C47B00',
+                            'warn-bg': '#FFF4E5',
+                        }
+                    },
+                    fontFamily: {
+                        'serif': ['Georgia', 'serif'],
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Inter font for clean modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom styles for things Tailwind can't easily express -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-50 font-sans text-brand-dark min-h-screen">
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-brand-green rounded flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">86</span>
+                </div>
+                <span class="font-semibold text-lg tracking-tight">86 Proof</span>
+            </a>
+
+            {% block nav_actions %}{% endblock %}
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- CHAT PANEL — fixed on right side, only visible when data is loaded -->
+    {% block chat_panel %}{% endblock %}
+
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

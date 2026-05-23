@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — 86 Proof{% endblock %}
+
+{% block nav_actions %}
+<div class="flex items-center space-x-4">
+    <a href="/reset"
+       class="text-sm text-brand-light hover:text-brand-dark transition-colors">
+        Upload new file
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold tracking-tight mb-1">
+        Program Health
+    </h1>
+    <p class="text-brand-mid text-sm">
+        Real-time analysis of your bar program performance.
+    </p>
+</div>
+
+<!-- METRIC CARDS — 3 cols x 2 rows -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+    <!-- CARD 1: POUR COST -->
+    {% set pc = metrics.pour_cost %}
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold">
+                Pour Cost
+            </h3>
+            {% if pc.status == 'on_target' %}
+                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">On target</span>
+            {% elif pc.status == 'slightly_over' %}
+                <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">Slightly over</span>
+            {% else %}
+                <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">Over target</span>
+            {% endif %}
+        </div>
+        <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-semibold">
+                {% if pc.value %}{{ "%.1f"|format(pc.value * 100) }}%{% else %}—{% endif %}
+            </span>
+            <span class="text-sm text-brand-light">
+                target {{ "%.0f"|format(pc.target * 100) }}%
+            </span>
+        </div>
+    </div>
+
+    <!-- CARD 2: WASTE -->
+    {% set w = metrics.waste %}
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold">
+                Waste
+            </h3>
+            {% if w.status == 'on_target' %}
+                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">On target</span>
+            {% elif w.status == 'slightly_over' %}
+                <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">Slightly over</span>
+            {% else %}
+                <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">Over target</span>
+            {% endif %}
+        </div>
+        <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-semibold">
+                ${{ "%.0f"|format(w.waste_dollars) }}
+            </span>
+            <span class="text-sm text-brand-light">
+                {% if w.waste_pct %}{{ "%.1f"|format(w.waste_pct * 100) }}% of revenue{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- CARD 3: COCKTAILS ABOVE WARNING -->
+    {% set aw = metrics.above_warning %}
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold">
+                Cost Alerts
+            </h3>
+            {% if aw.count == 0 %}
+                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Clean</span>
+            {% else %}
+                <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">{{ aw.count }} flagged</span>
+            {% endif %}
+        </div>
+        <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-semibold">
+                {{ aw.count }}<span class="text-base text-brand-light font-normal">/{{ aw.total }}</span>
+            </span>
+            <span class="text-sm text-brand-light">
+                above {{ "%.0f"|format(aw.warning_threshold * 100) }}%
+            </span>
+        </div>
+    </div>
+
+    <!-- CARD 4: TOP COCKTAIL -->
+    {% set tc = metrics.top_cocktail %}
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold mb-3">
+            Top Cocktail
+        </h3>
+        {% if tc %}
+            <div class="text-lg font-semibold mb-1">{{ tc.name }}</div>
+            <div class="text-sm text-brand-mid">
+                {{ tc.units_sold|int }} sold · ${{ "%.0f"|format(tc.total_contribution) }} contribution
+            </div>
+        {% else %}
+            <div class="text-brand-light">No sales data</div>
+        {% endif %}
+    </div>
+
+    <!-- CARD 5: TOP SPIRIT CATEGORY -->
+    {% set ts = metrics.top_spirit_category %}
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold mb-3">
+            Top Spirit Category
+        </h3>
+        {% if ts %}
+            <div class="text-lg font-semibold mb-1">{{ ts.category }}</div>
+            <div class="text-sm text-brand-mid">
+                ${{ "%.0f"|format(ts.revenue) }} attributed revenue
+            </div>
+        {% else %}
+            <div class="text-brand-light">Insufficient data</div>
+        {% endif %}
+    </div>
+
+    <!-- CARD 6: TOTAL REVENUE -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-xs uppercase tracking-wider text-brand-light font-semibold mb-3">
+            Beverage Revenue
+        </h3>
+        <div class="text-3xl font-semibold">
+            ${{ "{:,.0f}".format(metrics.total_revenue) }}
+        </div>
+        <div class="text-sm text-brand-light mt-1">
+            this reporting period
+        </div>
+    </div>
+
+</div>
+
+<!-- COST ALERTS DETAIL — only show if there are flagged cocktails -->
+{% if metrics.above_warning.count > 0 %}
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+    <div class="flex items-start space-x-3">
+        <svg class="w-5 h-5 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div>
+            <h4 class="font-semibold text-amber-900 mb-1">
+                {{ metrics.above_warning.count }} cocktail{{ 's' if metrics.above_warning.count > 1 else '' }} above warning threshold
+            </h4>
+            <p class="text-sm text-amber-800">
+                {{ metrics.above_warning.flagged_cocktails|join(', ') }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+<!-- CHAT PANEL — fixed on the right -->
+{% block chat_panel %}
+<div id="chat-panel"
+     class="fixed right-0 top-16 bottom-0 w-96 bg-white border-l border-gray-200
+            flex flex-col shadow-lg">
+
+    <!-- Chat header -->
+    <div class="px-5 py-4 border-b border-gray-200">
+        <h3 class="font-semibold">Ask about your program</h3>
+        <p class="text-xs text-brand-light mt-0.5">
+            Powered by Claude · ask anything about your data
+        </p>
+    </div>
+
+    <!-- Chat messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Initial assistant message -->
+        <div class="bg-brand-green-light/50 rounded-lg p-3 text-sm text-brand-dark">
+            <p class="font-medium mb-1">Welcome 👋</p>
+            <p>I've loaded your bar program data and I'm ready to help. Try asking things like:</p>
+            <ul class="mt-2 space-y-1 text-brand-mid">
+                <li>· "What's my worst performing cocktail?"</li>
+                <li>· "Which spirit category is driving the most revenue?"</li>
+                <li>· "What should I focus on this month?"</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Chat input -->
+    <div class="p-4 border-t border-gray-200">
+        <form id="chat-form" class="flex space-x-2">
+            <input type="text" id="chat-input"
+                   placeholder="Ask a question..."
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg
+                          text-sm focus:outline-none focus:border-brand-green
+                          focus:ring-1 focus:ring-brand-green"
+                   autocomplete="off">
+            <button type="submit"
+                    class="bg-brand-green hover:bg-green-700 text-white
+                           px-4 py-2 rounded-lg text-sm font-medium
+                           transition-colors">
+                Send
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Add right margin to main content to make room for chat panel -->
+<style>
+    main { padding-right: 26rem !important; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
