@@ -2,14 +2,6 @@
  * 86 Proof — Chat Panel
  * ─────────────────────────────────────────
  * Handles the conversational interface with Claude.
- *
- * Flow:
- *   1. User types a question, hits enter or clicks Send
- *   2. Message is rendered in the chat panel immediately
- *   3. POST request fires to /api/chat with message + history
- *   4. Loading indicator shows while waiting
- *   5. Claude's response is rendered when it returns
- *   6. History is maintained in browser memory for session
  */
 
 (function() {
@@ -93,10 +85,6 @@
     }
 
     function formatMarkdown(text) {
-        // Light markdown formatting:
-        //   **bold** → <strong>bold</strong>
-        //   - bullet → · bullet (cleaner inline)
-        //   newlines preserved via whitespace-pre-wrap in CSS
         return text
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/^- /gm, '· ')
@@ -110,37 +98,36 @@
     // ── API CALL ──────────────────────────────────────
 
     async function sendMessage(message) {
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: message,
-                history: conversationHistory,
-            }),
-        });
-
-        // Try to parse JSON — may fail if server returned empty/HTML (e.g. waking up)
-        let data;
         try {
-            data = await response.json();
-        } catch (parseErr) {
-            // Server returned non-JSON — likely waking up from sleep
-            throw new Error(
-                'The server is waking up. This can take 30-60 seconds on the free hosting tier. ' +
-                'Please try your question again in a moment.'
-            );
-        }
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: message,
+                    history: conversationHistory,
+                }),
+            });
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Something went wrong.');
-        }
+            // Try to parse JSON — may fail if server returned empty/HTML (e.g. waking up)
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseErr) {
+                throw new Error(
+                    'The server is waking up. This can take 30-60 seconds on the free hosting tier. ' +
+                    'Please try your question again in a moment.'
+                );
+            }
 
-        return data.response;
-    } catch (err) {
-        throw err;
+            if (!response.ok) {
+                throw new Error(data.error || 'Something went wrong.');
+            }
+
+            return data.response;
+        } catch (err) {
+            throw err;
+        }
     }
-}
 
     // ── FORM SUBMISSION ───────────────────────────────
 
@@ -152,25 +139,17 @@
         const message = chatInput.value.trim();
         if (!message) return;
 
-        // Clear input immediately
         chatInput.value = '';
-
-        // Render the user's message
         appendUserMessage(message);
 
-        // Show loading indicator
         isLoading = true;
         appendLoadingMessage();
 
         try {
-            // Send to backend
             const response = await sendMessage(message);
-
-            // Remove loading, render Claude's response
             removeLoadingMessage();
             appendAssistantMessage(response);
 
-            // Update conversation history
             conversationHistory.push(
                 { role: 'user', content: message },
                 { role: 'assistant', content: response }
@@ -186,7 +165,6 @@
         }
     });
 
-    // Focus the input on load
     chatInput.focus();
 
 })();
